@@ -1,0 +1,23 @@
+{
+  "valid_user": {
+    "username": "student",
+    "password": "Password123"
+  },
+  "invalid_user": {
+    "username": "incorrectUser",
+    "password": "incorrectPassword"
+  },
+  "validation_messages": {
+    "invalid_username_error": "Your username is invalid!",
+    "invalid_password_error": "Your password is invalid!",
+    "success_login_message": "Logged In Successfully"
+  },
+  "api": {
+    "base_url": "https://jsonplaceholder.typicode.com",
+    "post_payload": {
+      "title": "Enterprise Playwright API Test",
+      "body": "Testing HTTP endpoints using Python and Playwright.",
+      "userId": 1
+    }
+  }
+}
