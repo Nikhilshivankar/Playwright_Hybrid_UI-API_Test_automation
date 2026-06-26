@@ -6,3 +6,4 @@ allure-pytest>=2.13.2
 python-dotenv>=1.0.1
 pydantic>=2.6.0
 pydantic-settings>=2.2.1
+pytest-xdist>=3.5.0

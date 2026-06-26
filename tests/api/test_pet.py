@@ -1,4 +1,5 @@
 import json
+import random
 from pathlib import Path
 import pytest
 from utils.logger import logger
@@ -23,7 +24,9 @@ def test_add_and_get_pet(petstore_client: PetstoreClient):
     logger.info("--- API Add & Get Pet Test Started ---")
     
     # 1. Create request payload
+    pet_id = random.randint(100000000, 999999999)
     request_payload = PetCreateRequest(
+        id=pet_id,
         name=PET_PAYLOAD_RAW["name"],
         status=PET_PAYLOAD_RAW["status"],
         category=PET_PAYLOAD_RAW["category"],
@@ -61,7 +64,9 @@ def test_update_pet(petstore_client: PetstoreClient):
     logger.info("--- API Update Pet Test Started ---")
     
     # 1. Create a pet
+    pet_id = random.randint(100000000, 999999999)
     request_payload = PetCreateRequest(
+        id=pet_id,
         name="UpdateTestPet",
         status="available",
         photoUrls=["https://example.com/updatetest.jpg"]
@@ -97,7 +102,9 @@ def test_pet_db_verification(petstore_client: PetstoreClient, db_helper: Databas
     logger.info("--- API Pet with DB Verification Test Started ---")
     
     # 1. Add Pet via API
+    pet_id = random.randint(100000000, 999999999)
     request_payload = PetCreateRequest(
+        id=pet_id,
         name="DBVerificationPet",
         status="pending",
         photoUrls=["https://example.com/dbverify.jpg"],
