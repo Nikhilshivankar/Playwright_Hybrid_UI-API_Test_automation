@@ -63,6 +63,7 @@ def pytest_runtest_makereport(item, call):
     """
     outcome = yield
     report = outcome.get_result()
+    report.markers = [mark.name for mark in item.iter_markers()]
 
     # Capture screenshots only on failure during test execution phase (call)
     if report.when == "call" and report.failed:
@@ -108,3 +109,24 @@ def db_helper() -> DatabaseHelper:
     """
     logger.info("Initializing DatabaseHelper fixture")
     return DatabaseHelper()
+
+
+def pytest_html_results_table_header(cells):
+    # Insert new headers at index 2 (after test name / description)
+    cells.insert(2, "<th>Type</th>")
+    cells.insert(3, "<th>Tags</th>")
+
+
+def pytest_html_results_table_row(report, cells):
+    markers = getattr(report, "markers", [])
+    # Determine test type: UI vs Non-UI
+    if "api" in markers or "performance" in markers:
+        test_type = "Non-UI"
+    else:
+        test_type = "UI"
+    
+    tags = [m for m in markers if m in ("smoke", "regression", "sanity", "api", "performance", "login")]
+    tags_str = ", ".join(tags)
+    
+    cells.insert(2, f"<td>{test_type}</td>")
+    cells.insert(3, f"<td>{tags_str}</td>")
