@@ -7,14 +7,14 @@ This repository contains a production-ready, enterprise-grade test automation fr
 ## 🛠️ Framework Architecture
 
 ```text
-Playwright_API_Test_Automation/
+Playwright_Hybrid_UI-API_Test_automation/
 ├── .github/
 │   └── workflows/
 │       └── playwright.yml         # CI/CD pipeline automation
 ├── api/
-│   ├── definitions/              # API Client / Controller definitions (e.g. PostClient)
+│   ├── definitions/              # API Client / Controller definitions (e.g. PetstoreClient)
 │   │   ├── __init__.py
-│   │   └── post_client.py
+│   │   └── petstore_client.py
 │   ├── models/                   # Pydantic models for serialization and validation
 │   │   ├── __init__.py
 │   │   ├── request_models.py     # API request schemas
@@ -40,7 +40,9 @@ Playwright_API_Test_Automation/
 ├── tests/
 │   ├── api/                      # API endpoint test cases (using api/ layer)
 │   │   ├── __init__.py
-│   │   └── test_api.py
+│   │   ├── test_auth.py          # Authentication tests (login, logout)
+│   │   ├── test_pet.py           # Pet CRUD and DB validation tests
+│   │   └── test_store.py         # Order placement and deletion tests
 │   ├── ui/                       # UI browser-based test cases (using pages/ layer)
 │   │   ├── __init__.py
 │   │   └── test_login.py
@@ -156,11 +158,11 @@ This framework provides multiple reporting outputs to support local debugging an
 ### 1. File Logger
 Logs are formatted and piped to `reports/run.log`. It lists exact navigation links, element clicks, API requests, response codes, and assertions.
 ```text
-2026-06-26 19:32:08 [    INFO] --- API GET Request Started: https://jsonplaceholder.typicode.com/posts/1 --- (test_api.py:23)
-2026-06-26 19:32:09 [    INFO] Response status code received: 200 (test_api.py:28)
-2026-06-26 19:32:25 [    INFO] --- Execution Started: test_login_successful --- (test_login.py:19)
-2026-06-26 19:32:26 [    INFO] Navigating to URL: https://practicetestautomation.com/practice-test-login/ (base_page.py:18)
-2026-06-26 19:32:33 [    INFO] Entering value into 'Username Input': student (base_page.py:32)
+2026-06-26 20:30:04 [    INFO] API POST Request -> https://petstore.swagger.io/v2/pet (petstore_client.py:24)
+2026-06-26 20:30:05 [    INFO] API POST Response Status: 200 (petstore_client.py:28)
+2026-06-26 20:30:05 [    INFO] --- Execution Started: test_login_successful --- (test_login.py:19)
+2026-06-26 20:30:05 [    INFO] Navigating to URL: https://practicetestautomation.com/practice-test-login/ (base_page.py:18)
+2026-06-26 20:30:15 [    INFO] Entering value into 'Username Input': student (base_page.py:32)
 ```
 
 ### 2. JSON Reports
