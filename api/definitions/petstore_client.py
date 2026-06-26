@@ -114,3 +114,27 @@ class PetstoreClient:
         assert response.status == 200, f"Expected 200 OK, got {response.status}. Response: {response.text()}"
         
         return ApiResponse(**response.json())
+
+    # --- User / Auth Endpoints ---
+
+    def login_user(self, username: str, password: str) -> str:
+        """GET /user/login - Logs user into the system."""
+        endpoint = f"{self.base_url}/user/login"
+        logger.info(f"API GET Request (Login) -> {endpoint} with username: '{username}'")
+        
+        response = self.request.get(endpoint, params={"username": username, "password": password})
+        logger.info(f"API Login Response Status: {response.status}")
+        assert response.status == 200, f"Expected 200 OK, got {response.status}. Response: {response.text()}"
+        
+        return response.text()
+
+    def logout_user(self) -> str:
+        """GET /user/logout - Logs out current logged in user session."""
+        endpoint = f"{self.base_url}/user/logout"
+        logger.info(f"API GET Request (Logout) -> {endpoint}")
+        
+        response = self.request.get(endpoint)
+        logger.info(f"API Logout Response Status: {response.status}")
+        assert response.status == 200, f"Expected 200 OK, got {response.status}. Response: {response.text()}"
+        
+        return response.text()
