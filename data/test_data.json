@@ -13,11 +13,23 @@
     "success_login_message": "Logged In Successfully"
   },
   "api": {
-    "base_url": "https://jsonplaceholder.typicode.com",
-    "post_payload": {
-      "title": "Enterprise Playwright API Test",
-      "body": "Testing HTTP endpoints using Python and Playwright.",
-      "userId": 1
+    "base_url": "https://petstore.swagger.io/v2",
+    "pet_payload": {
+      "name": "doggie",
+      "status": "available",
+      "category": {
+        "id": 1,
+        "name": "Dogs"
+      },
+      "photoUrls": [
+        "https://example.com/dog1.jpg"
+      ],
+      "tags": [
+        {
+          "id": 1,
+          "name": "friendly"
+        }
+      ]
     }
   }
 }

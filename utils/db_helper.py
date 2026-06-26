@@ -37,6 +37,14 @@ class DatabaseHelper:
                     user_id INTEGER NOT NULL
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS pets (
+                    id INTEGER PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    category_name TEXT
+                )
+            """)
             conn.commit()
 
     def execute(self, query: str, params: tuple = ()) -> int:

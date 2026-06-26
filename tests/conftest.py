@@ -5,7 +5,7 @@ from playwright.sync_api import Playwright, APIRequestContext
 from utils.logger import logger
 from config.settings import settings
 from pages.login_page import LoginPage
-from api.definitions.post_client import PostClient
+from api.definitions.petstore_client import PetstoreClient
 from utils.db_helper import DatabaseHelper
 
 @pytest.fixture(scope="function")
@@ -86,9 +86,9 @@ def pytest_runtest_makereport(item, call):
                 logger.error(f"Failed to capture failure screenshot: {e}")
 
 @pytest.fixture
-def post_client(api_request_context) -> PostClient:
+def petstore_client(api_request_context) -> PetstoreClient:
     """
-    Fixture to instantiate and expose the PostClient for API tests.
+    Fixture to instantiate and expose the PetstoreClient for API tests.
     Loads the target API URL from test_data.json configuration.
     """
     import json
@@ -97,8 +97,8 @@ def post_client(api_request_context) -> PostClient:
         data = json.load(file)
     api_url = data["api"]["base_url"]
     
-    logger.info("Initializing PostClient fixture")
-    return PostClient(api_request_context, api_url)
+    logger.info("Initializing PetstoreClient fixture")
+    return PetstoreClient(api_request_context, api_url)
 
 @pytest.fixture(scope="session")
 def db_helper() -> DatabaseHelper:
