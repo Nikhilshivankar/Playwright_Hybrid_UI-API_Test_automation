@@ -130,3 +130,136 @@ def pytest_html_results_table_row(report, cells):
     
     cells.insert(2, f"<td>{test_type}</td>")
     cells.insert(3, f"<td>{tags_str}</td>")
+
+
+# Dictionary to store final status of each test case
+# Keys: nodeid, Values: {"type": "UI"|"Non-UI", "status": "passed"|"failed"|"skipped"}
+test_case_results = {}
+
+
+def pytest_runtest_logreport(report):
+    # Determine the test type using the report markers (which are attached in pytest_runtest_makereport)
+    markers = getattr(report, "markers", [])
+    if "api" in markers or "performance" in markers:
+        test_type = "Non-UI"
+    else:
+        test_type = "UI"
+
+    nodeid = report.nodeid
+    
+    # Initialize record if not exists
+    if nodeid not in test_case_results:
+        test_case_results[nodeid] = {
+            "type": test_type,
+            "status": "passed"
+        }
+        
+    # Update status based on execution phase
+    if report.failed:
+        test_case_results[nodeid]["status"] = "failed"
+    elif report.skipped:
+        test_case_results[nodeid]["status"] = "skipped"
+
+
+def pytest_html_results_summary(prefix, summary, postfix, session):
+    ui_passed = sum(1 for res in test_case_results.values() if res["type"] == "UI" and res["status"] == "passed")
+    ui_failed = sum(1 for res in test_case_results.values() if res["type"] == "UI" and res["status"] == "failed")
+    ui_skipped = sum(1 for res in test_case_results.values() if res["type"] == "UI" and res["status"] == "skipped")
+    
+    non_ui_passed = sum(1 for res in test_case_results.values() if res["type"] == "Non-UI" and res["status"] == "passed")
+    non_ui_failed = sum(1 for res in test_case_results.values() if res["type"] == "Non-UI" and res["status"] == "failed")
+    non_ui_skipped = sum(1 for res in test_case_results.values() if res["type"] == "Non-UI" and res["status"] == "skipped")
+    
+    ui_total = ui_passed + ui_failed + ui_skipped
+    non_ui_total = non_ui_passed + non_ui_failed + non_ui_skipped
+    
+    ui_pass_rate = (ui_passed / ui_total * 100) if ui_total > 0 else 0.0
+    non_ui_pass_rate = (non_ui_passed / non_ui_total * 100) if non_ui_total > 0 else 0.0
+    
+    # Determine colors and badges based on pass rates
+    if ui_pass_rate == 100.0:
+        ui_badge_bg, ui_badge_color = "#dcfce7", "#166534"
+    elif ui_pass_rate >= 80.0:
+        ui_badge_bg, ui_badge_color = "#fef9c3", "#854d0e"
+    else:
+        ui_badge_bg, ui_badge_color = "#fee2e2", "#991b1b"
+        
+    if non_ui_pass_rate == 100.0:
+        non_ui_badge_bg, non_ui_badge_color = "#dcfce7", "#166534"
+    elif non_ui_pass_rate >= 80.0:
+        non_ui_badge_bg, non_ui_badge_color = "#fef9c3", "#854d0e"
+    else:
+        non_ui_badge_bg, non_ui_badge_color = "#fee2e2", "#991b1b"
+        
+    ui_skipped_span = f'<span style="color: #b45309; margin-left: 8px;">| Skipped: <strong>{ui_skipped}</strong></span>' if ui_skipped > 0 else ''
+    non_ui_skipped_span = f'<span style="color: #b45309; margin-left: 8px;">| Skipped: <strong>{non_ui_skipped}</strong></span>' if non_ui_skipped > 0 else ''
+    
+    metrics_html = f"""
+    <div class="test-metrics-card" style="
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        margin-top: 15px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        font-family: system-ui, -apple-system, sans-serif;
+    ">
+        <h3 style="
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #1e293b;
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        ">Test Performance Metrics (UI vs Non-UI)</h3>
+        
+        <div style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        ">
+            <!-- UI Card -->
+            <div style="
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 16px;
+            ">
+                <h4 style="margin: 0 0 12px 0; color: #475569; font-size: 14px; font-weight: 600;">UI Web App Tests</h4>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                    <span style="font-size: 32px; font-weight: 700; color: #1e293b;">{ui_pass_rate:.1f}%</span>
+                    <span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: {ui_badge_bg}; color: {ui_badge_color};">Pass Rate</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #64748b;">
+                    <span>Total: <strong>{ui_total}</strong></span> | 
+                    <span style="color: #16a34a;">Passed: <strong>{ui_passed}</strong></span> | 
+                    <span style="color: #dc2626;">Failed: <strong>{ui_failed}</strong></span>
+                    {ui_skipped_span}
+                </div>
+            </div>
+            
+            <!-- Non-UI Card -->
+            <div style="
+                background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+                border: 1px solid #cbd5e1;
+                border-radius: 8px;
+                padding: 16px;
+            ">
+                <h4 style="margin: 0 0 12px 0; color: #475569; font-size: 14px; font-weight: 600;">Non-UI API/Performance Tests</h4>
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+                    <span style="font-size: 32px; font-weight: 700; color: #1e293b;">{non_ui_pass_rate:.1f}%</span>
+                    <span style="font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 12px; background: {non_ui_badge_bg}; color: {non_ui_badge_color};">Pass Rate</span>
+                </div>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #64748b;">
+                    <span>Total: <strong>{non_ui_total}</strong></span> | 
+                    <span style="color: #16a34a;">Passed: <strong>{non_ui_passed}</strong></span> | 
+                    <span style="color: #dc2626;">Failed: <strong>{non_ui_failed}</strong></span>
+                    {non_ui_skipped_span}
+                </div>
+            </div>
+        </div>
+    </div>
+    """
+    prefix.append(metrics_html)
+
