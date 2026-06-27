@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from utils.logger import logger
 from api.definitions.petstore_client import PetstoreClient
+from config.settings import settings
 
 # Resolve and load test data dynamically
 TEST_DATA_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "test_data.json"
@@ -12,13 +13,14 @@ with open(TEST_DATA_PATH, "r", encoding="utf-8") as file:
 @pytest.mark.api
 @pytest.mark.login
 @pytest.mark.smoke
+@pytest.mark.tc_id("TC_004")
 def test_api_login_successful(petstore_client: PetstoreClient):
     """
     Test Case: Verify successful user login to the Petstore API.
     """
     logger.info("--- API Login Test Started ---")
-    username = test_data["valid_user"]["username"]
-    password = test_data["valid_user"]["password"]
+    username = settings.TEST_USERNAME
+    password = settings.TEST_PASSWORD
     
     login_response = petstore_client.login_user(username, password)
     
@@ -31,14 +33,15 @@ def test_api_login_successful(petstore_client: PetstoreClient):
 @pytest.mark.api
 @pytest.mark.login
 @pytest.mark.regression
+@pytest.mark.tc_id("TC_005")
 def test_api_logout_successful(petstore_client: PetstoreClient):
     """
     Test Case: Verify successful user logout from the Petstore API.
     """
     logger.info("--- API Logout Test Started ---")
     # 1. Login first to initialize session/token context
-    username = test_data["valid_user"]["username"]
-    password = test_data["valid_user"]["password"]
+    username = settings.TEST_USERNAME
+    password = settings.TEST_PASSWORD
     petstore_client.login_user(username, password)
     
     # 2. Perform Logout

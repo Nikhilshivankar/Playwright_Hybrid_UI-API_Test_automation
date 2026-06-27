@@ -17,6 +17,7 @@ PET_PAYLOAD_RAW = test_data["api"]["pet_payload"]
 
 @pytest.mark.api
 @pytest.mark.smoke
+@pytest.mark.tc_id("TC_006")
 def test_add_and_get_pet(petstore_client: PetstoreClient):
     """
     Test Case: Verify adding a pet and retrieving it by ID.
@@ -57,6 +58,7 @@ def test_add_and_get_pet(petstore_client: PetstoreClient):
 
 @pytest.mark.api
 @pytest.mark.regression
+@pytest.mark.tc_id("TC_007")
 def test_update_pet(petstore_client: PetstoreClient):
     """
     Test Case: Verify updating an existing pet's status.
@@ -94,6 +96,7 @@ def test_update_pet(petstore_client: PetstoreClient):
 
 @pytest.mark.api
 @pytest.mark.regression
+@pytest.mark.tc_id("TC_008")
 def test_pet_db_verification(petstore_client: PetstoreClient, db_helper: DatabaseHelper):
     """
     Test Case: Add a pet via API, mirror the record in local SQLite database, 

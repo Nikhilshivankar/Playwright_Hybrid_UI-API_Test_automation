@@ -6,7 +6,7 @@ class PetResponse(BaseModel):
     id: Optional[int] = None
     category: Optional[CategoryModel] = None
     name: Optional[str] = None
-    photoUrls: Optional[List[str]] = None
+    photoUrls: Optional[List[Optional[str]]] = None
     tags: Optional[List[TagModel]] = None
     status: Optional[str] = None
 

@@ -6,6 +6,7 @@ from api.models.response_models import OrderResponse, ApiResponse
 
 @pytest.mark.api
 @pytest.mark.regression
+@pytest.mark.tc_id("TC_009")
 def test_place_and_delete_order(petstore_client: PetstoreClient):
     """
     Test Case: Verify placing a store order for a pet and then deleting it.

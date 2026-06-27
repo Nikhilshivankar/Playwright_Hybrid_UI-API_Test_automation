@@ -29,8 +29,8 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
 
     # Test Data Credentials
-    TEST_USERNAME: str = "student"
-    TEST_PASSWORD: str = "Password123"
+    TEST_USERNAME: str
+    TEST_PASSWORD: str
 
 # Instantiate settings for global imports
 settings = Settings()

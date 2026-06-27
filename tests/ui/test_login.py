@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from utils.logger import logger
 from pages.login_page import LoginPage
+from config.settings import settings
 
 # Resolve and load test data dynamically (relative to tests/ui/)
 TEST_DATA_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "test_data.json"
@@ -11,6 +12,7 @@ with open(TEST_DATA_PATH, "r", encoding="utf-8") as file:
 
 @pytest.mark.login
 @pytest.mark.smoke
+@pytest.mark.tc_id("TC_001")
 def test_login_successful(login_page: LoginPage):
     """
     Test Case: Verify successful login with correct username and password.
@@ -19,8 +21,7 @@ def test_login_successful(login_page: LoginPage):
     logger.info("--- Execution Started: test_login_successful ---")
     login_page.navigate_to_login()
     
-    credentials = test_data["valid_user"]
-    login_page.login(credentials["username"], credentials["password"])
+    login_page.login(settings.TEST_USERNAME, settings.TEST_PASSWORD)
     
     # Assert successful login header is displayed
     assert login_page.is_success_header_displayed(), "Login success header was not displayed."
@@ -37,6 +38,7 @@ def test_login_successful(login_page: LoginPage):
 
 @pytest.mark.login
 @pytest.mark.regression
+@pytest.mark.tc_id("TC_002")
 def test_login_invalid_username(login_page: LoginPage):
     """
     Test Case: Verify validation message displayed with invalid username and valid password.
@@ -45,7 +47,7 @@ def test_login_invalid_username(login_page: LoginPage):
     login_page.navigate_to_login()
     
     invalid_username = test_data["invalid_user"]["username"]
-    valid_password = test_data["valid_user"]["password"]
+    valid_password = settings.TEST_PASSWORD
     login_page.login(invalid_username, valid_password)
     
     # Assert expected error message matches
@@ -57,6 +59,7 @@ def test_login_invalid_username(login_page: LoginPage):
 
 @pytest.mark.login
 @pytest.mark.regression
+@pytest.mark.tc_id("TC_003")
 def test_login_invalid_password(login_page: LoginPage):
     """
     Test Case: Verify validation message displayed with valid username and invalid password.
@@ -64,7 +67,7 @@ def test_login_invalid_password(login_page: LoginPage):
     logger.info("--- Execution Started: test_login_invalid_password ---")
     login_page.navigate_to_login()
     
-    valid_username = test_data["valid_user"]["username"]
+    valid_username = settings.TEST_USERNAME
     invalid_password = test_data["invalid_user"]["password"]
     login_page.login(valid_username, invalid_password)
     

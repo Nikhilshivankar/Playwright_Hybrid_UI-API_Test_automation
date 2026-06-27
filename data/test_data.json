@@ -1,7 +1,7 @@
 {
   "valid_user": {
-    "username": "student",
-    "password": "Password123"
+    "username": "<LOADED_FROM_ENV>",
+    "password": "<LOADED_FROM_ENV>"
   },
   "invalid_user": {
     "username": "incorrectUser",

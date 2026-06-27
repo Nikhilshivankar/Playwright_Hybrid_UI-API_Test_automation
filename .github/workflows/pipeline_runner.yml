@@ -38,6 +38,8 @@ jobs:
         BROWSER: chromium
         HEADLESS: true
         LOG_LEVEL: INFO
+        TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+        TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
       run: |
         pytest
 
