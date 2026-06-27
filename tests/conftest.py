@@ -93,13 +93,9 @@ def pytest_runtest_makereport(item, call):
 def petstore_client(api_request_context) -> PetstoreClient:
     """
     Fixture to instantiate and expose the PetstoreClient for API tests.
-    Loads the target API URL from test_data.json configuration.
+    Loads the target API URL from config settings.
     """
-    import json
-    test_data_path = Path(__file__).resolve().parent.parent / "data" / "test_data.json"
-    with open(test_data_path, "r", encoding="utf-8") as file:
-        data = json.load(file)
-    api_url = data["api"]["base_url"]
+    api_url = settings.API_BASE_URL
     
     logger.info("Initializing PetstoreClient fixture")
     return PetstoreClient(api_request_context, api_url)

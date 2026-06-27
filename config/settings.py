@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     # Application details
     BASE_URL: str = "https://practicetestautomation.com"
+    API_BASE_URL: str = "https://petstore.swagger.io/v2"
     ENVIRONMENT: str = "staging"
 
     # Browser configurations

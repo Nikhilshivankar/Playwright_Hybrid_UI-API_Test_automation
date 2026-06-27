@@ -34,10 +34,11 @@ jobs:
     - name: Execute Pytest Suite
       env:
         # Inject framework variables from GitHub Actions environment
-        BASE_URL: https://practicetestautomation.com
-        BROWSER: chromium
-        HEADLESS: true
-        LOG_LEVEL: INFO
+        BASE_URL: ${{ vars.BASE_URL }}
+        API_BASE_URL: ${{ vars.API_BASE_URL }}
+        BROWSER: ${{ vars.BROWSER }}
+        HEADLESS: ${{ vars.HEADLESS }}
+        LOG_LEVEL: ${{ vars.LOG_LEVEL }}
         TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
         TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
       run: |
