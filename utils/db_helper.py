@@ -45,6 +45,15 @@ class DatabaseHelper:
                     category_name TEXT
                 )
             """)
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS orders (
+                    id INTEGER PRIMARY KEY,
+                    pet_id INTEGER NOT NULL,
+                    quantity INTEGER NOT NULL,
+                    status TEXT NOT NULL,
+                    complete BOOLEAN NOT NULL
+                )
+            """)
             conn.commit()
 
     def execute(self, query: str, params: tuple = ()) -> int:
