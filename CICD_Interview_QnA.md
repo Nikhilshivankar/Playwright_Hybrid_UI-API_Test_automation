@@ -77,3 +77,21 @@ We use the `actions/upload-artifact@v4` action at the very end of our workflow t
 1. **Auto-Waiting**: Rely heavily on Playwright's auto-waiting features instead of `time.sleep()`.
 2. **Reruns**: We can use the `pytest-rerunfailures` plugin to automatically retry a failed test once or twice before officially failing the pipeline.
 3. **Quarantine**: If a test is consistently flaky due to an environment issue, we tag it with `@pytest.mark.skip` or `@pytest.mark.xfail` so it doesn't block developers from merging their code while we investigate the root cause.
+
+---
+
+## 6. Scenario-Based Questions (Medium to High Difficulty)
+
+**Scenario 1 (Medium): Your manager complains that the E2E tests are failing in the GitHub Actions pipeline, but when they run the code locally on their machine, everything passes. What are the common culprits, and how do you investigate?**
+**A:** This is a classic "works on my machine" problem. The most common culprits are:
+1. **Environment Mismatches**: The local machine might be Windows/Mac, while the CI runner is Ubuntu Linux.
+2. **Missing Secrets**: The developer might have the correct `.env` file locally, but forgot to add the new variables to the GitHub Repository Secrets.
+3. **Timing Issues**: CI runners often have slower CPUs and network bandwidth compared to developer laptops. A test missing a proper Playwright `wait_for` might pass fast locally but timeout in CI.
+4. **Headless vs Headed**: Some UI elements (like hover menus or window sizes) render differently in headless mode. 
+*Investigation*: I would download the archived HTML report and Playwright traces from the failing GitHub Actions run to see exactly where the runner got stuck.
+
+**Scenario 2 (High): You are running 1,000 automated UI tests. Running them sequentially takes 3 hours. Running them in parallel on one CI runner takes 1 hour but constantly crashes the runner due to CPU/Memory exhaustion (OOM). How do you get the execution time under 15 minutes?**
+**A:** I would implement **Horizontal Scaling (Matrix Sharding)**. Instead of vertically overloading a single GitHub Actions runner with 1,000 parallel tests, I would configure the workflow matrix to spin up 10 completely independent runners simultaneously. I would split the test suite so each runner executes a completely different shard of 100 tests. Once all 10 runners finish (which would take ~10 minutes), a final job would merge the 10 separate XML/HTML reports into one unified document.
+
+**Scenario 3 (High): Your test suite fails. The CI pipeline turns red and sends a Slack alert. The developer checks the GitHub Actions logs but just sees a cryptic `Exception: Element not found` error. How do you improve the CI pipeline to make debugging easier for developers?**
+**A:** I would vastly improve the artifact archiving. I would ensure the `actions/upload-artifact` step is set to `if: always()` and configure Playwright/Pytest to automatically generate Base64 screenshots, full DOM traces (via Playwright Trace Viewer), and even MP4 video recordings exclusively on test failure. This allows the developer to download the zip file from the pipeline and visually watch exactly what happened leading up to the failure without trying to decipher raw terminal logs.

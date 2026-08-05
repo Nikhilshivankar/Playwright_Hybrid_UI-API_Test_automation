@@ -149,3 +149,20 @@ For assertions, we use Python's native `assert` keyword paired with our Page Obj
 7. **Environment Abstraction**: Hardcoding URLs or credentials is a bad practice. The framework adapts to QA or Staging environments automatically using GitHub Secrets and `pydantic-settings` (`.env`).
 8. **Visibility (Reporting & Logging)**: When a test fails in CI/CD, we generate detailed Pytest-HTML reports with Base64 embedded screenshots, stack traces, and custom logging streams.
 9. **CI/CD Integration**: The framework is completely integrated into a **GitHub Actions** pipeline, automatically triggering tests on Pull Requests and Pushes.
+
+---
+
+## 15. Scenario-Based Questions (Medium to High Difficulty)
+
+**Scenario 1 (Medium): Your UI test is failing randomly 20% of the time because an element is sometimes temporarily obscured by a loading spinner overlay. How do you fix this in your Playwright framework?**
+**A:** I would absolutely avoid using `time.sleep()`. Instead, I would identify the locator for the loading spinner and explicitly wait for it to disappear using Playwright's state checks: `page.locator(".spinner").wait_for(state="hidden")`. Alternatively, if I'm trying to click an element beneath it, I can rely on Playwright's auto-waiting (it waits for the element to receive pointer events), or force the click using `.click(force=True)` if the overlay is a known non-blocking animation, though waiting for the spinner to detach is the safest and most robust approach.
+
+**Scenario 2 (High): You need to test an e-commerce checkout flow. The UI requires 10 slow steps to add items to a cart before you can even see the checkout button. This makes the test take 2 minutes. How do you optimize this?**
+**A:** I would use a Hybrid approach combining API and UI. Instead of using the UI to click through 10 steps, I would use Playwright's `APIRequestContext` to make backend POST requests that add the items to the cart and generate a session token. I would then inject that session token directly into the browser's context (using `context.add_cookies()` or evaluating JavaScript to set `localStorage`). Finally, I would use `page.goto("/checkout")` to navigate directly to the checkout page. This reduces the test time from 2 minutes to 5 seconds while still fully validating the UI checkout logic.
+
+**Scenario 3 (High): Your test suite has grown to 500 E2E tests and now takes 45 minutes to run in the CI pipeline. Your manager wants it reduced to under 10 minutes. What strategies do you implement?**
+**A:** I would implement a multi-layered optimization strategy:
+1. **Parallel Execution**: I would use `pytest-xdist` (`pytest -n auto`) to run tests concurrently across multiple CPU workers. If running in CI, I would split the matrix across multiple runner machines (sharding).
+2. **API State Injection**: As mentioned above, replace all UI setup/teardown steps (like logging in or creating data) with instant API calls.
+3. **Resource Blocking**: I would use `page.route("**/*", lambda route: route.abort() if route.request.resource_type in ["image", "font", "media"] else route.continue_())` to block heavy, unnecessary assets from loading during the tests.
+4. **Targeted Execution**: I would ensure we are only running the `@pytest.mark.smoke` suite on every PR, and save the full 500-test regression suite for nightly runs.

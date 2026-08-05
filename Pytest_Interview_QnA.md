@@ -112,3 +112,16 @@ Examples include:
 - **`pytest-html`**: Generates a standalone HTML file summarizing the test execution results.
 - **`pytest-playwright`**: The official Playwright plugin that automatically provides browser, context, and page fixtures out of the box.
 - **`pytest-cov`**: Integrates with the coverage library to measure how much of the application source code was covered by the tests.
+
+---
+
+## 8. Scenario-Based Questions (Medium to High Difficulty)
+
+**Scenario 1 (Medium): You have a test that creates a database record, asserts the record exists, and then deletes the record. However, if the assertion fails, the test aborts and the delete code is never reached, leaving orphaned data. How do you fix this?**
+**A:** I would move the creation and deletion logic into a Pytest fixture using the `yield` keyword. The fixture setup creates the record and yields it to the test. The test performs the assertion. Even if the assertion raises an exception, Pytest guarantees that the code block following the `yield` (the teardown/delete step) will still execute, perfectly cleaning up the orphaned data.
+
+**Scenario 2 (High): You need to run a suite of tests against 3 different browsers (Chromium, Firefox, WebKit) and 2 different user roles (Admin, Guest). Writing separate test functions for all 6 combinations is highly inefficient. How do you handle this cleanly?**
+**A:** I would use Pytest parameterization. I can either stack two `@pytest.mark.parametrize` decorators on the test function (one for browsers, one for roles), or I can parameterize the fixtures themselves using `params=[...]`. Pytest will automatically generate the Cartesian product of all combinations, executing the exact same test logic 6 times automatically without any code duplication.
+
+**Scenario 3 (High): A test fails randomly 1 out of 10 times, but only when the entire suite is run in parallel using `pytest-xdist`. It never fails when run locally in isolation. What is the likely cause, and how do you fix it?**
+**A:** This is a classic "test pollution" or shared state issue. The test is likely modifying a global variable, writing to a shared file, or modifying a static database record that another parallel test is also trying to access or assert against simultaneously. The fix is to ensure the test is perfectly atomic. It should create its own unique test data (e.g., using random UUIDs for usernames) via function-scoped fixtures rather than relying on shared or hardcoded state.
