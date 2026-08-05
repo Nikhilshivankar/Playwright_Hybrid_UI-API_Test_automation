@@ -10,6 +10,13 @@ TEST_DATA_PATH = Path(__file__).resolve().parent.parent.parent / "data" / "test_
 with open(TEST_DATA_PATH, "r", encoding="utf-8") as file:
     test_data = json.load(file)
 
+# Compile E2E login datasets dynamically (combining environment settings with JSON datasets)
+e2e_datasets = [
+    (settings.TEST_USERNAME, settings.TEST_PASSWORD)
+]
+for user in test_data.get("e2e_users", []):
+    e2e_datasets.append((user["username"], user["password"]))
+
 @pytest.mark.e2e
 @pytest.mark.regression
 @pytest.mark.tc_id("TC_010")
@@ -41,10 +48,7 @@ def test_e2e_user_login_and_logout(login_page: LoginPage):
 @pytest.mark.e2e
 @pytest.mark.regression
 @pytest.mark.tc_id("TC_012")
-@pytest.mark.parametrize("username, password", [
-    (settings.TEST_USERNAME, settings.TEST_PASSWORD),
-    ("student", "Password123"),
-])
+@pytest.mark.parametrize("username, password", e2e_datasets)
 def test_e2e_user_login_and_logout_multiple(login_page: LoginPage, username, password):
     """
     Test Case: Verify login and logout flows for multiple parameterized user datasets.

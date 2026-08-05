@@ -31,5 +31,11 @@
         }
       ]
     }
-  }
+  },
+  "e2e_users": [
+    {
+      "username": "student",
+      "password": "Password123"
+    }
+  ]
 }
