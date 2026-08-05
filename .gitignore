@@ -20,6 +20,7 @@ blob-report/
 # IDEs and editors
 .vscode/
 .idea/
+.claude/
 *.suo
 *.ntvs*
 *.njsproj
