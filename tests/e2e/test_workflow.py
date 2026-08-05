@@ -36,3 +36,35 @@ def test_e2e_user_login_and_logout(login_page: LoginPage):
     assert login_page.is_visible(login_page.PASSWORD_INPUT), "Did not return to login page after logout."
     
     logger.info("--- Execution Completed: E2E User Login and Logout (PASSED) ---")
+
+
+@pytest.mark.e2e
+@pytest.mark.regression
+@pytest.mark.tc_id("TC_012")
+@pytest.mark.parametrize("username, password", [
+    (settings.TEST_USERNAME, settings.TEST_PASSWORD),
+    ("student", "Password123"),
+])
+def test_e2e_user_login_and_logout_multiple(login_page: LoginPage, username, password):
+    """
+    Test Case: Verify login and logout flows for multiple parameterized user datasets.
+    """
+    logger.info(f"--- Execution Started: E2E User Login and Logout for user '{username}' ---")
+    
+    # 1. Login
+    login_page.navigate_to_login()
+    login_page.login(username, password)
+    
+    # Assert successful login
+    assert login_page.is_success_header_displayed(), f"Login success header was not displayed for user: {username}"
+    assert login_page.is_logout_button_displayed(), f"Logout button was not found for user: {username}"
+    
+    # 2. Logout
+    login_page.click(login_page.LOGOUT_BUTTON, description="Logout Button")
+    
+    # Assert return to login page
+    login_page.wait_for_element(login_page.USERNAME_INPUT)
+    assert login_page.is_visible(login_page.USERNAME_INPUT), f"Did not return to login page after logout for user: {username}"
+    assert login_page.is_visible(login_page.PASSWORD_INPUT), f"Did not return to login page after logout for user: {username}"
+    
+    logger.info(f"--- Execution Completed: E2E User Login and Logout for user '{username}' (PASSED) ---")
