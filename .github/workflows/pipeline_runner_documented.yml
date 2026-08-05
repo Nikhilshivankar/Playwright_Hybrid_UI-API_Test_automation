@@ -1,0 +1,150 @@
+# This sets the name of the GitHub Actions workflow as it will display in the GitHub "Actions" tab UI.
+name: Playwright Test Automation CI (Documented)
+
+# "on" specifies the events that trigger this workflow.
+on:
+  # Trigger the workflow when code is pushed to any of these branches.
+  push:
+    branches: [ main, master, dev ]
+  # Trigger the workflow when a Pull Request is opened or updated targeting these branches.
+  pull_request:
+    branches: [ main, master ]
+  # Allows triggering the workflow manually from the GitHub UI or the GitHub REST API.
+  workflow_dispatch:
+    # "inputs" defines custom parameters that can be passed during a manual execution.
+    inputs:
+      test_suite:
+        # Description displayed to the user when they click "Run workflow".
+        description: 'Select the test suite to execute'
+        # Ensures that a value is provided (the default option counts as provided).
+        required: true
+        # The default value selected if the user doesn't modify it.
+        default: 'all'
+        # Restricts choices to a dropdown list.
+        type: choice
+        # The selectable options in the dropdown corresponding to pytest markers.
+        options:
+          - all
+          - smoke
+          - sanity
+          - regression
+          - api
+          - e2e
+
+# "jobs" defines a collection of tasks that run in the workflow. By default, jobs run in parallel.
+jobs:
+  # Defining a job named "test-execution".
+  test-execution:
+    # The name of the job displayed in the GitHub Actions UI. It uses dynamic matrix values.
+    name: Execute ${{ matrix.test_type }} Tests (${{ matrix.browser }})
+    # Defines the type of runner/machine this job will execute on. ubuntu-latest is a Linux VM.
+    runs-on: ubuntu-latest
+
+    # "strategy" is used to define execution strategies like matrix building.
+    strategy:
+      # If true, cancels all in-progress jobs in the matrix if any job fails. Set to false to run all jobs to completion.
+      fail-fast: false
+      # "matrix" executes multiple jobs in parallel with different configurations.
+      matrix:
+        # "include" allows defining specific, custom combinations of variables (test_type and browser) instead of cross-multiplying arrays.
+        include:
+          # Configuration 1: UI tests on the Chromium browser.
+          - test_type: ui
+            browser: chromium
+          # Configuration 2: UI tests on the Firefox browser.
+          - test_type: ui
+            browser: firefox
+          # Configuration 3: UI tests on the WebKit (Safari engine) browser.
+          - test_type: ui
+            browser: webkit
+          # Configuration 4: API tests, which do not run on a browser.
+          - test_type: api
+            browser: none
+
+    # "steps" is a list of sequential tasks that will be executed as part of this job.
+    steps:
+    # Step 1: Check out the code repository so the runner has access to project files.
+    - name: Checkout Code Repository
+      uses: actions/checkout@v4
+
+    # Step 2: Install and configure Python on the runner machine.
+    - name: Set up Python Environment
+      uses: actions/setup-python@v5
+      with:
+        # Specifies the Python version to install.
+        python-version: '3.11'
+        # Enables caching for pip dependencies to speed up future runs.
+        cache: 'pip'
+
+    # Step 3: Upgrade pip and install all Python library dependencies defined in requirements.txt.
+    - name: Install Project Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    # Step 4: Install Playwright browsers and system dependencies. Only runs for UI matrix configurations.
+    - name: Install Playwright Browser Binaries & System Dependencies
+      if: matrix.test_type == 'ui'
+      run: |
+        playwright install --with-deps ${{ matrix.browser }}
+
+    # Step 5: Execute the Pytest test suite, injecting environment configurations.
+    - name: Execute Pytest Suite
+      env:
+        # The base URL of the UI application, retrieved from GitHub Actions Variables.
+        BASE_URL: ${{ vars.BASE_URL }}
+        # The base URL of the API endpoints, retrieved from GitHub Actions Variables.
+        API_BASE_URL: ${{ vars.API_BASE_URL }}
+        # The browser environment variable to match the current matrix browser.
+        BROWSER: ${{ matrix.browser }}
+        # Dictates if the browser should run without a visible UI window (headless mode).
+        HEADLESS: ${{ vars.HEADLESS }}
+        # The logging level (e.g. INFO, DEBUG) configured for framework logs.
+        LOG_LEVEL: ${{ vars.LOG_LEVEL }}
+        # Secure test user credentials, retrieved from encrypted GitHub Actions Secrets.
+        TEST_USERNAME: ${{ secrets.TEST_USERNAME }}
+        TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+      # Run execution script
+      run: |
+        # Store the selected manual input parameter from workflow_dispatch
+        SUITE="${{ github.event.inputs.test_suite }}"
+        # Set the target folder path to execute tests from based on the matrix (tests/ui or tests/api)
+        TARGET_DIR="tests/${{ matrix.test_type }}"
+        
+        # Branching logic for UI tests
+        if [ "${{ matrix.test_type }}" = "ui" ]; then
+          # If no custom suite is selected, run all UI tests in the UI folder using the specific browser
+          if [ -z "$SUITE" ] || [ "$SUITE" = "all" ]; then
+            echo "Executing all UI tests on ${{ matrix.browser }}..."
+            pytest "$TARGET_DIR" --browser ${{ matrix.browser }}
+          # Else, run only the tests matching the selected marker inside the UI folder using the specific browser
+          else
+            echo "Executing UI tests in $TARGET_DIR marked with: $SUITE on ${{ matrix.browser }}..."
+            pytest "$TARGET_DIR" --browser ${{ matrix.browser }} -m "$SUITE"
+          fi
+        # Branching logic for API tests
+        else
+          # If no custom suite is selected, run all API tests in the API folder
+          if [ -z "$SUITE" ] || [ "$SUITE" = "all" ]; then
+            echo "Executing all API tests..."
+            pytest "$TARGET_DIR"
+          # Else, run only the tests matching the selected marker inside the API folder
+          else
+            echo "Executing API tests in $TARGET_DIR marked with: $SUITE..."
+            pytest "$TARGET_DIR" -m "$SUITE"
+          fi
+        fi
+
+    # Step 6: Collect and archive execution reports, logs, and screenshots.
+    - name: Archive Execution Reports & Logs
+      # "if: always()" ensures this step runs even if the previous test execution step fails.
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        # Saves the archive with a unique name matching the current job matrix variables
+        name: test-execution-reports-and-logs-${{ matrix.test_type }}-${{ matrix.browser }}
+        # The path to the folder containing execution reports, logs, database files, and failure screenshots
+        path: |
+          reports/
+        # Number of days GitHub Actions will keep the artifact before deleting it automatically
+        retention-days: 14
